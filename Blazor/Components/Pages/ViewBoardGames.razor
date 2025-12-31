@@ -1,0 +1,147 @@
+﻿@page "/ViewBoardGames"
+@rendermode InteractiveServer
+@using Blazor.Model
+@using Blazor.Services
+@inject IBoardGameService BoardGameService
+
+<style>
+    .board-game-card {
+        border: 2px solid #ddd;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .board-game-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .board-game-card img {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        background-color: #f0f0f0;
+    }
+    
+    .board-game-card-body {
+        padding: 15px;
+        text-align: center;
+        background-color: #f9f9f9;
+    }
+    
+    .board-game-card-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+    
+    .board-game-card-genre {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .board-game-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+    
+    .board-game-modal-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+</style>
+
+<h3>View Board Games</h3>
+
+@if (boardGames == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!boardGames.Any())
+{
+    <p><em>No board games found.</em></p>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var game in boardGames.OrderBy(g => g.Title))
+        {
+            <div class="col-md-6 col-lg-4 col-xl-3" @key="game.Title">
+                <div class="board-game-card" @onclick="() => SelectBoardGame(game)">
+                    <img src="@game.FrontImage" alt="@game.Title" onerror="this.src='https://via.placeholder.com/280x350?text=@game.Title';" />
+                    <div class="board-game-card-body">
+                        <div class="board-game-card-title">@game.Title</div>
+                        <div class="board-game-card-genre">(@game.Genre)</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Modal for showing detailed information -->
+@if (selectedGame != null)
+{
+    <div class="board-game-modal-overlay" @onclick="CloseModal">
+        <div class="board-game-modal-content" @onclick:stopPropagation="true">
+            <div style="padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h5 style="margin: 0; font-weight: 600;">@selectedGame.Title</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                
+                <img src="@selectedGame.FrontImage" class="img-fluid" alt="@selectedGame.Title" style="max-height: 350px; width: 100%; object-fit: contain; margin-bottom: 15px; border-radius: 8px;"/>
+                
+                <hr style="margin: 15px 0;"/>
+                
+                <div style="line-height: 1.8;">
+                    <p><strong>Genre:</strong> @selectedGame.Genre</p>
+                    <p><strong>Owner:</strong> @selectedGame.Owner</p>
+                    <p><strong>Play Time:</strong> @selectedGame.PlayTime minutes</p>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<GenreList></GenreList>
+
+@code {
+    private IEnumerable<BoardGame>? boardGames;
+    private BoardGame? selectedGame;
+
+    protected override async Task OnInitializedAsync()
+    {
+        boardGames = await BoardGameService.GetAllBoardGamesAsync();
+    }
+
+    private void SelectBoardGame(BoardGame game)
+    {
+        selectedGame = game;
+    }
+
+    private void CloseModal()
+    {
+        selectedGame = null;
+    }
+}

@@ -1,0 +1,61 @@
+﻿@using Blazor.Model
+@using Blazor.Services
+@inject IBoardGameService BoardGameService
+
+<div class="genre-list-container">
+    <h4>Genres Summary</h4>
+    
+    @if (genreCounts == null)
+    {
+        <p><em>Loading genres...</em></p>
+    }
+    else if (!genreCounts.Any())
+    {
+        <p><em>No genres found.</em></p>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var genre in genreCounts.OrderByDescending(g => g.Value).ThenBy(g => g.Key))
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>@genre.Key</span>
+                    <span class="badge bg-primary rounded-pill">@genre.Value</span>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+<style>
+    .genre-list-container {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .genre-list-container h4 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .list-group-item {
+        border: 1px solid #dee2e6;
+    }
+</style>
+
+@code {
+    private Dictionary<string, int>? genreCounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allGames = await BoardGameService.GetAllBoardGamesAsync();
+        
+        genreCounts = allGames
+            .GroupBy(g => g.Genre)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
+}

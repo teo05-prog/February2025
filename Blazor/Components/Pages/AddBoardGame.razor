@@ -1,0 +1,128 @@
+﻿@page "/AddBoardGame"
+@rendermode InteractiveServer
+@using Blazor.Model
+@using Blazor.Services
+@inject IBoardGameService BoardGameService
+@inject NavigationManager NavigationManager
+
+<h3>Add Board Game</h3>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label">Title:</label>
+            <input type="text" class="form-control" @bind="title" placeholder="Enter board game title"/>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Genre:</label>
+            <input type="text" class="form-control" @bind="genre" placeholder="Enter genre"/>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Play time (minutes):</label>
+            <input type="number" class="form-control" @bind="playTime" placeholder="Enter play time in minutes"/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Owner:</label>
+            <input type="text" class="form-control" @bind="owner" placeholder="Enter owner name"/>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Front image URL:</label>
+            <input type="text" class="form-control" @bind="frontImage" placeholder="Enter image URL"/>
+        </div>
+
+        <button class="btn btn-primary" @onclick="HandleAddBoardGame">Add Board Game</button>
+        <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+    </div>
+</div>
+
+@code {
+    private string title = string.Empty;
+    private string genre = string.Empty;
+    private string playTime = string.Empty;
+    private string owner = string.Empty;
+    private string frontImage = string.Empty;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    
+    private async Task HandleAddBoardGame()
+    {
+        try
+        {
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                errorMessage = "Title is required.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(genre))
+            {
+                errorMessage = "Genre is required.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                errorMessage = "Owner is required.";
+                return;
+            }
+
+            if (!int.TryParse(playTime, out int parsedPlayTime) || parsedPlayTime <= 0)
+            {
+                errorMessage = "Play time must be a positive number.";
+                return;
+            }
+
+            // Create the board game
+            var boardGame = new BoardGame
+            {
+                Title = title,
+                Genre = genre,
+                PlayTime = parsedPlayTime,
+                Owner = owner,
+                FrontImage = frontImage ?? "https://via.placeholder.com/300x400?text=No+Image"
+            };
+
+            // Add the board game
+            await BoardGameService.AddBoardGameAsync(boardGame);
+
+            // Clear the form and show success message
+            successMessage = $"Board game '{title}' added successfully!";
+            title = string.Empty;
+            genre = string.Empty;
+            playTime = string.Empty;
+            owner = string.Empty;
+            frontImage = string.Empty;
+
+            // Navigate back to home after 2 seconds
+            await Task.Delay(2000);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}
