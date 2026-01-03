@@ -19,7 +19,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Deck endpoints
-// 2.4.1 - Create Deck
+// Create Deck
 app.MapPost("/decks", async (Deck deck, IDeckService deckService) =>
 {
     var createdDeck = await deckService.AddDeckAsync(deck);
@@ -28,7 +28,7 @@ app.MapPost("/decks", async (Deck deck, IDeckService deckService) =>
 .WithName("CreateDeck")
 .WithOpenApi();
 
-// 2.4.2 - Add Card to Deck
+// Add Card to Deck
 app.MapPost("/decks/{deckId}/cards", async (int deckId, Card card, IDeckService deckService) =>
 {
     var deck = await deckService.GetDeckByIdAsync(deckId);
@@ -45,7 +45,7 @@ app.MapPost("/decks/{deckId}/cards", async (int deckId, Card card, IDeckService 
 .WithName("AddCardToDeck")
 .WithOpenApi();
 
-// 2.4.3 - View all decks with optional filtering
+// View all decks with optional filtering
 app.MapGet("/decks", async (string? playerName, string? format, IDeckService deckService) =>
 {
     var decks = await deckService.GetAllDecksAsync();
@@ -66,7 +66,7 @@ app.MapGet("/decks", async (string? playerName, string? format, IDeckService dec
 .WithName("GetAllDecks")
 .WithOpenApi();
 
-// 2.4.4 - Get cards from a specific deck
+// Get cards from a specific deck
 app.MapGet("/decks/{deckId}/cards", async (int deckId, IDeckService deckService) =>
 {
     var deck = await deckService.GetDeckByIdAsync(deckId);
